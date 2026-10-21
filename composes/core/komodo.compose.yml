@@ -1,0 +1,52 @@
+services:
+  mongo:
+    image: mongo:7.0
+    command: --quiet --wiredTigerCacheSizeGB 0.25
+    env_file:
+      - ./compose.env
+    restart: unless-stopped
+    labels:
+      komodo.skip: ""
+    volumes:
+      - mongo-data:/data/db
+      - mongo-config:/data/configdb
+    networks:
+      - network_internal
+
+  core:
+    image: ghcr.io/moghtech/komodo-core:2.3
+    init: true
+    env_file:
+      - ./compose.env
+    environment:
+      KOMODO_DATABASE_ADDRESS: mongo:27017
+      TZ: America/Sao_Paulo
+    restart: unless-stopped
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: network_public_attachable
+      traefik.http.routers.komodo.rule: "Host(`komodo.sperium.net`)"
+      traefik.http.routers.komodo.entrypoints: websecure
+      traefik.http.routers.komodo.tls: "true"
+      traefik.http.routers.komodo.tls.certresolver: letsencryptresolver
+      traefik.http.services.komodo.loadbalancer.server.port: "9120"
+    volumes:
+      - keys:/config/keys
+      - backups:/backups
+    networks:
+      - network_internal
+      - network_public
+
+volumes:
+  mongo-data:
+  mongo-config:
+  keys:
+  backups:
+
+
+networks:
+  network_internal:
+    driver: bridge
+  network_public:
+    external: true
+    name: network_public_attachable

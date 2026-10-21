@@ -44,8 +44,6 @@ services:
       - "traefik.http.routers.finance.tls.certresolver=letsencryptresolver"
       - "traefik.http.services.finance.loadbalancer.server.port=3000"
 
-
-
 networks:
   home:
     external: true

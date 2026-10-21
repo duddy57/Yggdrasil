@@ -1,5 +1,17 @@
 .env
 tmp/
-ansible/
-inventory.json
 media.compose.yml
+
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform.lock.hcl
+
+# Runtime Ansible inventory and generated secrets
+ansible/inventory/runtime-inventory.json
+ansible/.vault-password
+
+ansible/

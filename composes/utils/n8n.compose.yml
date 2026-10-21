@@ -1,0 +1,93 @@
+x-n8n-environment: &n8n-environment
+  DB_TYPE: postgresdb
+  DB_POSTGRESDB_HOST: databases_postgres
+  DB_POSTGRESDB_PORT: "5432"
+  DB_POSTGRESDB_DATABASE: ${POSTGRES_DB}
+  DB_POSTGRESDB_USER: ${POSTGRES_USER}
+  DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+
+  EXECUTIONS_MODE: queue
+
+  QUEUE_BULL_REDIS_HOST: databases_redis
+  QUEUE_BULL_REDIS_PORT: "6379"
+  QUEUE_BULL_REDIS_PASSWORD: ${REDIS_PASSWORD}
+  QUEUE_HEALTH_CHECK_ACTIVE: "true"
+
+  N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+
+  N8N_HOST: ${N8N_HOST}
+  N8N_PORT: "5678"
+  N8N_PROTOCOL: https
+  N8N_PROXY_HOPS: "1"
+
+  N8N_WEBHOOK_URL: https://${N8N_HOST}/
+  N8N_EDITOR_BASE_URL: https://${N8N_HOST}/
+
+  GENERIC_TIMEZONE: ${GENERIC_TIMEZONE}
+  NODE_ENV: production
+  N8N_SECURE_COOKIE: "true"
+
+
+x-n8n-base: &n8n-base
+  image: n8nio/n8n:2.45.0
+  restart: unless-stopped
+  environment:
+    <<: *n8n-environment
+  networks:
+    - database
+
+
+services:
+
+  n8n:
+    <<: *n8n-base
+
+    environment:
+      <<: *n8n-environment
+      OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS: "true"
+
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+    networks:
+      - database
+      - public
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --spider -q http://127.0.0.1:5678/healthz || exit 1"
+        ]
+      start_period: 60s
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: network_public_attachable
+      traefik.http.routers.n8n.rule: "Host(`${N8N_HOST}`)"
+      traefik.http.routers.n8n.entrypoints: websecure
+      traefik.http.routers.n8n.tls: "true"
+      traefik.http.routers.n8n.tls.certresolver: letsencryptresolver
+      traefik.http.services.n8n.loadbalancer.server.port: "5678"
+
+
+  n8n-worker:
+    <<: *n8n-base
+    command: worker
+
+
+volumes:
+  n8n_data:
+
+
+networks:
+  database:
+    external: true
+    name: network_database
+
+  public:
+    external: true
+    name: network_public_attachable

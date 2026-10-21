@@ -1,0 +1,120 @@
+x-chatwoot-base: &chatwoot-base
+  image: astraonline/astrachat:v4.18.0-0.0.4-arm64
+  restart: unless-stopped
+
+  volumes:
+    - chatwoot-storage:/app/storage
+
+  environment:
+    FRONTEND_URL: ${FRONTEND_URL}
+    CHATWOOT_HUB_URL: ${CHATWOOT_HUB_URL}
+
+    INSTALLATION_NAME: Nexen
+    SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+
+    FORCE_SSL: ${FORCE_SSL}
+    DEFAULT_LOCALE: ${DEFAULT_LOCALE}
+    ACTIVE_STORAGE_SERVICE: ${ACTIVE_STORAGE_SERVICE}
+    ENABLE_ACCOUNT_SIGNUP: ${ENABLE_ACCOUNT_SIGNUP}
+
+    RAILS_ENV: ${RAILS_ENV}
+    NODE_ENV: ${NODE_ENV}
+    INSTALLATION_ENV: ${INSTALLATION_ENV}
+    RAILS_LOG_TO_STDOUT: ${RAILS_LOG_TO_STDOUT}
+    LOG_LEVEL: ${LOG_LEVEL}
+
+    POSTGRES_HOST: databases_postgres
+    POSTGRES_PORT: "5432"
+    POSTGRES_DATABASE: ${POSTGRES_DATABASE}
+    POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID}
+    GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET} 
+    GOOGLE_OAUTH_CALLBACK_URL: https://${FRONTEND_URL}/omniauth/google_oauth2/callback
+
+    REDIS_URL: redis://databases_redis:6379
+    REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+    USE_INBOX_AVATAR_FOR_BOT: "true"
+
+  networks:
+    - database
+
+
+services:
+
+  chatwoot:
+    <<: *chatwoot-base
+
+    entrypoint: docker/entrypoints/rails.sh
+
+    command:
+      - sh
+      - -c
+      - bundle exec rails db:chatwoot_prepare && bundle exec rails s -p 3000 -b 0.0.0.0
+
+    expose:
+      - "3000"
+
+    # healthcheck:
+    #   test:
+    #     - CMD-SHELL
+    #     - curl -fsS http://${FRONTEND_URL}/auth/sign_in > /dev/null || exit 1
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 5
+    #   start_period: 90s
+
+    networks:
+      - database
+      - public
+
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: network_public_attachable
+
+      traefik.http.routers.chatwoot.rule: "Host(`${CHATWOOT_DOMAIN}`)"
+      traefik.http.routers.chatwoot.entrypoints: websecure
+      traefik.http.routers.chatwoot.tls: "true"
+      traefik.http.routers.chatwoot.tls.certresolver: letsencryptresolver
+
+      traefik.http.services.chatwoot.loadbalancer.server.port: "3000"
+
+
+  chatwoot-worker:
+    <<: *chatwoot-base
+
+    command:
+      - bundle
+      - exec
+      - sidekiq
+      - -C
+      - config/sidekiq.yml
+    # healthcheck:
+    #   test:
+    #     - CMD-SHELL
+    #     - >-
+    #         bundle exec rails runner 'exit(Sidekiq::ProcessSet.new.size > 0 ? 0 : 1)' || exit
+    #         1
+    #   interval: 30s
+    #   timeout: 15s
+    #   retries: 5
+    #   start_period: 60s
+
+    networks:
+      - database
+
+
+volumes:
+  chatwoot-storage:
+
+
+networks:
+  database:
+    external: true
+    name: network_database
+
+  public:
+    external: true
+    name: network_public_attachable
