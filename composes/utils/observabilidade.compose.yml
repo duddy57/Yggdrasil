@@ -7,7 +7,7 @@ services:
       - "--storage.tsdb.retention.time=15d"
       - "--web.enable-lifecycle"
     volumes:
-      - ./observability/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+      - ../../observability/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     networks:
       - monitoring
@@ -35,7 +35,7 @@ services:
       GF_SERVER_ROOT_URL: https://${GRAFANA_HOST}
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../../observability/grafana/provisioning:/etc/grafana/provisioning:ro
     networks:
       - monitoring
       - public
