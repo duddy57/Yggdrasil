@@ -20,12 +20,12 @@ services:
   odoo:
     <<: *odoo-base
 
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${ODOO_PORT}/web/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:${ODOO_PORT}/web/health"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 60s
     expose:
       - "${ODOO_PORT}"
       - "${ODOO_GEVENT_PORT}"
