@@ -1,0 +1,54 @@
+x-odoo-base: &odoo-base
+  image: odoo:${ODOO_VERSION}
+  restart: unless-stopped
+  volumes:
+    - odoo-data:/var/lib/odoo
+    - ${ODOO_CONFIG_PATH}:/etc/odoo/odoo.conf:ro
+    - ./custom-addons:/mnt/extra-addons:ro
+
+  environment:
+    - HOST=${ODOO_DB_HOST}
+    - USER=${ODOO_DB_USER}
+    - PASSWORD=${ODOO_DB_PASSWORD}
+
+  networks:
+    - public
+    - database
+
+
+services:
+  odoo:
+    <<: *odoo-base
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${ODOO_PORT}/web/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    expose:
+      - "${ODOO_PORT}"
+      - "${ODOO_GEVENT_PORT}"
+
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: network_public_attachable
+
+      traefik.http.routers.odoo.rule: "Host(`${ODOO_DOMAIN}`)"
+      traefik.http.routers.odoo.entrypoints: websecure
+      traefik.http.routers.odoo.tls: "true"
+      traefik.http.routers.odoo.tls.certresolver: letsencryptresolver
+
+      traefik.http.services.odoo.loadbalancer.server.port: "${ODOO_PORT}"
+
+volumes:
+  odoo-data:
+
+networks:
+  database:
+    external: true
+    name: network_database
+
+  public:
+    external: true
+    name: network_public_attachable

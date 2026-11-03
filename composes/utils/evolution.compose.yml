@@ -1,0 +1,47 @@
+x-evolution-base: &evolution-base
+  image: evoapicloud/evolution-go:latest
+  restart: unless-stopped
+  volumes:
+    - evolution_go_data:/app/dbdata
+    - evolution_go_logs:/app/logs
+  environment:
+      SERVER_PORT: 8080
+      CLIENT_NAME: evolution
+      GLOBAL_API_KEY: sua-chave-segura-aqui
+      POSTGRES_AUTH_DB: postgresql://postgres:password@postgres:5432/evogo_auth?sslmode=disable
+      POSTGRES_USERS_DB: postgresql://postgres:password@postgres:5432/evogo_users?sslmode=disable
+      DATABASE_SAVE_MESSAGES: "false"
+      WADEBUG: INFO
+      LOGTYPE: console
+
+      CONNECT_ON_STARTUP: "true"
+      WEBHOOKFILES: "true"
+
+      OS_NAME: "Linux"
+
+      # Eventos
+      EVENT_IGNORE_GROUP: "false"
+      EVENT_IGNORE_STATUS: "true"
+
+      # MinIO/S3 (Opcional)
+      MINIO_ENABLED: "false"
+      MINIO_ENDPOINT: ""
+      MINIO_ACCESS_KEY: ""
+      MINIO_SECRET_KEY: ""
+      MINIO_BUCKET: ""
+      MINIO_USE_SSL: "false"
+
+
+
+services:
+  evolution-go:
+    image: 
+    ports:
+      - "8080:8080"
+    
+    restart: unless-stopped
+
+
+    public:
+    external: true
+    name: network_public
