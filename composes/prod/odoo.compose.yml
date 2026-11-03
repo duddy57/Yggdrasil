@@ -23,7 +23,7 @@ services:
     healthcheck:
       test:
       - CMD-SHELL
-        - >-
+      - >-
         python3 -c "from urllib.request import urlopen;
         urlopen('http://127.0.0.1:8069/web/login', timeout=5)"
       interval: 30s
