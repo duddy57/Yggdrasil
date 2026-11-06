@@ -17,7 +17,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=network_public_attachable"
-      - "traefik.http.routers.infisical.rule=Host(`${INFISCAL_DOMAIN}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.infisical.rule=Host(`${INFISICAL_DOMAIN}`)"
       - "traefik.http.routers.infisical.entrypoints=websecure"
       - "traefik.http.routers.infisical.tls=true"
       - "traefik.http.routers.infisical.tls.certresolver=letsencryptresolver"
