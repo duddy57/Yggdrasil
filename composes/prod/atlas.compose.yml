@@ -8,6 +8,7 @@ services:
     networks:
       - app
       - database
+      - public
 
     environment:
       DB_URL: ${ATLAS_DB_URL}
@@ -75,6 +76,19 @@ services:
       LDAP_SYNC_UPDATE: ${LDAP_SYNC_UPDATE:-false}
       LDAP_SYNC_DISABLE: ${LDAP_SYNC_DISABLE:-false}
       LDAP_SYNC_CRON: ${LDAP_SYNC_CRON:-}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=network_public_attachable"
+      - "traefik.http.routers.atlas-api.rule=Host(`${ATLAS_DOMAIN}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.atlas-api.entrypoints=websecure"
+      - "traefik.http.routers.atlas-api.tls=true"
+      - "traefik.http.routers.atlas-api.tls.certresolver=letsencryptresolver"
+      - "traefik.http.routers.atlas-api.priority=100"
+      - "traefik.http.routers.atlas-api.middlewares=atlas-api-strip"
+      - "traefik.http.routers.atlas-api.service=atlas-api"
+      - "traefik.http.middlewares.atlas-api-strip.stripprefix.prefixes=/api"
+      - "traefik.http.middlewares.atlas-api-strip.stripprefix.forceSlash=true"
+      - "traefik.http.services.atlas-api.loadbalancer.server.port=8080"
   frontend:
     image: intelloop/atlas-cmms-frontend
     networks:
@@ -113,6 +127,7 @@ services:
       - "traefik.http.routers.atlas.entrypoints=websecure"
       - "traefik.http.routers.atlas.tls=true"
       - "traefik.http.routers.atlas.tls.certresolver=letsencryptresolver"
+      - "traefik.http.routers.atlas.priority=10"
       - "traefik.http.services.atlas.loadbalancer.server.port=3000"
 
 networks:
