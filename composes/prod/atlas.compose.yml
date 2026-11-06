@@ -1,0 +1,129 @@
+name: atlas-cmms
+services:
+  api:
+    image: intelloop/atlas-cmms-backend
+    volumes:
+      - ./logo:/app/static/images
+      - ./config:/app/static/config
+    networks:
+      - app
+      - database
+
+    environment:
+      DB_URL: ${ATLAS_DB_URL}
+      DB_USER: ${ATLAS_DB_USER}
+      DB_PWD: ${ATLAS_DB_PASSWORD}
+
+      PUBLIC_API_URL: ${ATLAS_HOST}/api
+      PUBLIC_FRONT_URL: ${ATLAS_HOST}
+
+      SMTP_PWD: ${SMTP_PWD}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_FROM: ${SMTP_FROM}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      MINIO_ENDPOINT: minio:9000
+      MINIO_BUCKET: atlas-bucket
+      MINIO_ACCESS_KEY: ${MINIO_USER}
+      MINIO_SECRET_KEY: ${MINIO_PASSWORD}
+      STORAGE_TYPE: ${STORAGE_TYPE:-minio}
+      PUBLIC_MINIO_ENDPOINT: ${ATLAS_HOST}/storage
+      INVITATION_VIA_EMAIL: ${INVITATION_VIA_EMAIL:-false}
+      ENABLE_EMAIL_NOTIFICATIONS: ${ENABLE_EMAIL_NOTIFICATIONS:-false}
+      ENABLE_SSO: ${ENABLE_SSO:-false}
+      OAUTH2_PROVIDER: ${OAUTH2_PROVIDER}
+      OAUTH2_CLIENT_ID: ${OAUTH2_CLIENT_ID}
+      OAUTH2_CLIENT_SECRET: ${OAUTH2_CLIENT_SECRET}
+      LICENSE_KEY: ${LICENSE_KEY:-}
+      LICENSE_FINGERPRINT_REQUIRED: ${LICENSE_FINGERPRINT_REQUIRED:-false}
+      LICENSE_FILE_PATH: ${LICENSE_FILE_PATH:-}
+      ALLOWED_ORGANIZATION_ADMINS: ${ALLOWED_ORGANIZATION_ADMINS:-}
+      LOGO_PATHS: ${LOGO_PATHS:-}
+      CUSTOM_COLORS: ${CUSTOM_COLORS:-}
+      BRAND_CONFIG: ${BRAND_CONFIG:-}
+      PADDLE_API_KEY: ${PADDLE_API_KEY:-}
+      PADDLE_WEBHOOK_SECRET_KEY: ${PADDLE_WEBHOOK_SECRET_KEY:-}
+      PADDLE_ENVIRONMENT: ${PADDLE_ENVIRONMENT:-sandbox}
+      ENABLE_CORS: ${ENABLE_CORS:-false}
+      KEYGEN_PRODUCT_TOKEN: ${KEYGEN_PRODUCT_TOKEN:-}
+      MAIL_TYPE: ${MAIL_TYPE:-smtp}
+
+
+      RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY:-}
+      SINGLE_INGRESS: ${SINGLE_INGRESS:-true}
+      TRUSTED_PROXY_IPS: ${TRUSTED_PROXY_IPS:-}
+
+      LDAP_ENABLED: ${LDAP_ENABLED:-false}
+      LDAP_ORG_ADMIN: ${LDAP_ORG_ADMIN:-}
+      LDAP_URL: ${LDAP_URL:-}
+      LDAP_BASE_DN: ${LDAP_BASE_DN:-}
+      LDAP_MANAGER_DN: ${LDAP_MANAGER_DN:-}
+      LDAP_MANAGER_PASSWORD: ${LDAP_MANAGER_PASSWORD:-}
+      LDAP_USER_SEARCH_BASES: ${LDAP_USER_SEARCH_BASES:-}
+      LDAP_USER_SEARCH_FILTER: ${LDAP_USER_SEARCH_FILTER:-}
+      LDAP_ATTR_EMAIL: ${LDAP_ATTR_EMAIL:-}
+      LDAP_ATTR_FIRSTNAME: ${LDAP_ATTR_FIRSTNAME:-}
+      LDAP_ATTR_LASTNAME: ${LDAP_ATTR_LASTNAME:-}
+      LDAP_ATTR_USERNAME: ${LDAP_ATTR_USERNAME:-}
+      LDAP_OBJECT_CLASS: ${LDAP_OBJECT_CLASS:-}
+      LDAP_OU_ROLE_MAPPINGS: ${LDAP_OU_ROLE_MAPPINGS:-}
+      LDAP_SYNC_ENABLED: ${LDAP_SYNC_ENABLED:-false}
+      LDAP_SYNC_CREATE: ${LDAP_SYNC_CREATE:-false}
+      LDAP_SYNC_UPDATE: ${LDAP_SYNC_UPDATE:-false}
+      LDAP_SYNC_DISABLE: ${LDAP_SYNC_DISABLE:-false}
+      LDAP_SYNC_CRON: ${LDAP_SYNC_CRON:-}
+  frontend:
+    image: intelloop/atlas-cmms-frontend
+    networks:
+      - public
+      - app
+    environment:
+      API_URL: /api
+      GOOGLE_KEY: ${GOOGLE_KEY:- }
+      GOOGLE_TRACKING_ID: ${GOOGLE_TRACKING_ID:- }
+      INVITATION_VIA_EMAIL: ${INVITATION_VIA_EMAIL:-false}
+      CLOUD_VERSION: ${CLOUD_VERSION:-false}
+      NODE_ENV: production
+      ENABLE_SSO: ${ENABLE_SSO:-false}
+      OAUTH2_PROVIDER: ${OAUTH2_PROVIDER:- }
+      LOGO_PATHS: ${LOGO_PATHS:- }
+      CUSTOM_COLORS: ${CUSTOM_COLORS:- }
+      BRAND_CONFIG: ${BRAND_CONFIG:- }
+      DEMO_LINK: ${DEMO_LINK:- }
+      HOME_URL: ${ATLAS_HOST:-https://atlas-cmms.com}
+      PADDLE_SECRET_TOKEN: ${PADDLE_SECRET_TOKEN:- }
+      PADDLE_ENVIRONMENT: ${PADDLE_ENVIRONMENT:-sandbox}
+      RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY:- }
+      LDAP_ENABLED: ${LDAP_ENABLED:-false}
+      SENTRY_DSN: ${SENTRY_DSN:- }
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:- }
+      SENTRY_RELEASE: ${SENTRY_RELEASE:- }
+      CLARITY_ID: ${CLARITY_ID:- }
+    ports:
+      - "${ATLAS_WEB_PORT}:3000"
+    depends_on:
+      - api
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=network_public_attachable"
+      - "traefik.http.routers.atlas.rule=Host(`${ATLAS_HOST}`)"
+      - "traefik.http.routers.atlas.entrypoints=websecure"
+      - "traefik.http.routers.atlas.tls=true"
+      - "traefik.http.routers.atlas.tls.certresolver=letsencryptresolver"
+      - "traefik.http.services.atlas.loadbalancer.server.port=3000"
+
+networks:
+  app:
+    internal: true
+
+  database:
+    external: true
+    name: network_database
+
+  public:
+    external: true
+    name: network_public_attachable
