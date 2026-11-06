@@ -1,0 +1,34 @@
+name: infisical
+services:
+  infisical:
+    image: infisical/infisical:v0.167.5
+    restart: unless-stopped
+    networks:
+      - database
+      - public
+    environment:
+      NODE_ENV: production
+      SITE_URL: ${SITE_URL}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      AUTH_SECRET: ${AUTH_SECRET}
+      DB_CONNECTION_URI: ${DB_CONNECTION_URI}
+      REDIS_URL: ${REDIS_URL}
+      HOST: 0.0.0.0
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=network_public_attachable"
+      - "traefik.http.routers.infisical.rule=Host(`${INFISCAL_DOMAIN}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.infisical.entrypoints=websecure"
+      - "traefik.http.routers.infisical.tls=true"
+      - "traefik.http.routers.infisical.tls.certresolver=letsencryptresolver"
+      - "traefik.http.routers.infisical.service=infisical"
+      - "traefik.http.services.infisical.loadbalancer.server.port=8080"
+
+networks:
+  database:
+    external: true
+    name: network_database
+
+  public:
+    external: true
+    name: network_public_attachable
