@@ -14,8 +14,8 @@ services:
       DB_USER: ${ATLAS_DB_USER}
       DB_PWD: ${ATLAS_DB_PASSWORD}
 
-      PUBLIC_API_URL: ${ATLAS_HOST}/api
-      PUBLIC_FRONT_URL: ${ATLAS_HOST}
+      PUBLIC_API_URL: ${ATLAS_URL}/api
+      PUBLIC_FRONT_URL: ${ATLAS_URL}
 
       SMTP_PWD: ${SMTP_PWD}
       SMTP_USER: ${SMTP_USER}
@@ -30,7 +30,7 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_USER}
       MINIO_SECRET_KEY: ${MINIO_PASSWORD}
       STORAGE_TYPE: ${STORAGE_TYPE:-minio}
-      PUBLIC_MINIO_ENDPOINT: ${ATLAS_HOST}/storage
+      PUBLIC_MINIO_ENDPOINT: ${ATLAS_URL}/storage
       INVITATION_VIA_EMAIL: ${INVITATION_VIA_EMAIL:-false}
       ENABLE_EMAIL_NOTIFICATIONS: ${ENABLE_EMAIL_NOTIFICATIONS:-false}
       ENABLE_SSO: ${ENABLE_SSO:-false}
@@ -93,7 +93,7 @@ services:
       CUSTOM_COLORS: ${CUSTOM_COLORS:- }
       BRAND_CONFIG: ${BRAND_CONFIG:- }
       DEMO_LINK: ${DEMO_LINK:- }
-      HOME_URL: ${ATLAS_HOST:-https://atlas-cmms.com}
+      HOME_URL: ${ATLAS_URL:-https://atlas-cmms.com}
       PADDLE_SECRET_TOKEN: ${PADDLE_SECRET_TOKEN:- }
       PADDLE_ENVIRONMENT: ${PADDLE_ENVIRONMENT:-sandbox}
       RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY:- }
@@ -109,7 +109,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=network_public_attachable"
-      - "traefik.http.routers.atlas.rule=Host(`${ATLAS_HOST}`)"
+      - "traefik.http.routers.atlas.rule=Host(`${ATLAS_DOMAIN}`)"
       - "traefik.http.routers.atlas.entrypoints=websecure"
       - "traefik.http.routers.atlas.tls=true"
       - "traefik.http.routers.atlas.tls.certresolver=letsencryptresolver"
