@@ -15,3 +15,5 @@ ansible/inventory/runtime-inventory.json
 ansible/.vault-password
 
 ansible/
+
+authentik.compose.yml

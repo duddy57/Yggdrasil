@@ -1,0 +1,57 @@
+name: forgejo
+
+service:
+  forgejo:
+    image: codeberg.org/forgejo/forgejo:17
+    restart: unless-stopped
+    enviroment:
+      TZ: America/Sao_Paulo
+      FORGEJO__database__DB_TYPE: ${FORGEJO_DB_TYPE}
+      FORGEJO__database__HOST: ${FORGEJO_DB_HOST}
+      FORGEJO__database__NAME: ${FORGEJO_DB_NAME}
+      FORGEJO__database__USER: ${FORGEJO_DB_USER}
+      FORGEJO__database__PASSWD: ${FORGEJO_DB_PASSWORD}
+    volumes:
+      - forgejo/data:/data
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: network_public_attachable
+      traefik.http.routers.forgejo.rule: "Host(`${FORGEJO_HOST}`)"
+      traefik.http.routers.forgejo.entrypoints: websecure
+      traefik.http.routers.forgejo.tls: "true"
+      traefik.http.routers.forgejo.tls.certresolver: letsencryptresolver
+      traefik.http.services.forgejo.loadbalancer.server.port: "3105"
+    networks:
+      - database
+      - public
+# dind:
+#   image: docker:29.9.3-dind
+#   privileged: true
+#   restart: unless-stopped
+#   command: ["dockerd", "-H", "tcp://0.0.0.0:2375", "--tls=false"]
+# runner:
+#   image: code.forgejo.org/forgejo/runner:13.2.0
+#   links:
+#     - dind
+#   depends_on:
+#     dind:
+#       condition: service_started
+#   user: 1000:1000
+#   environment:
+#     DOCKER_HOST: tcp://dind:2375
+#   volumes:
+#     - forgejo/runner/data:/data
+#     - forgejo/runner/config.yaml:/config.yaml
+#   restart: unless-stopped
+#   command: '/bin/sh -c "while : ; do sleep 1 ; done ;"'
+volumes:
+  forgejo:
+
+networks:
+  database:
+    external: true
+    name: network_database
+
+  public:
+    external: true
+    name: network_public_attachable
