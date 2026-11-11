@@ -12,7 +12,7 @@ services:
       FORGEJO__database__USER: ${FORGEJO_DB_USER}
       FORGEJO__database__PASSWD: ${FORGEJO_DB_PASSWORD}
     volumes:
-      - forgejo_data:/data
+      - /opt/forgejo/data:/data
     labels:
       traefik.enable: "true"
       traefik.docker.network: network_public_attachable
@@ -24,10 +24,6 @@ services:
     networks:
       - database
       - public
-
-volumes:
-  forgejo_data:
-    name: forgejo_data
 
 networks:
   database:
