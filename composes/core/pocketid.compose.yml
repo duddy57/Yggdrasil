@@ -1,0 +1,28 @@
+services:
+  pocket-id:
+    image: pocketid/pocket-id:v2
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - "./data:/app/data"
+    healthcheck:
+      test: [ "CMD", "/app/pocket-id", "healthcheck" ]
+      interval: 1m30s
+      timeout: 5s
+      retries: 2
+      start_period: 10s
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: network_public_attachable
+      traefik.http.routers.pocket.rule: "Host(`${POCKET_ID_HOST}`)"
+      traefik.http.routers.pocket.entrypoints: websecure
+      traefik.http.routers.pocket.tls: "true"
+      traefik.http.routers.pocket.tls.certresolver: letsencryptresolver
+      traefik.http.services.pocket.loadbalancer.server.port: "1411"
+    networks:
+      - public
+
+networks:
+  public:
+    external: true
+    name: network_public_attachable
