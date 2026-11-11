@@ -12,7 +12,7 @@ services:
       FORGEJO__database__USER: ${FORGEJO_DB_USER}
       FORGEJO__database__PASSWD: ${FORGEJO_DB_PASSWORD}
     volumes:
-      - forgejo/data:/data
+      - forgejo_data:/data
     labels:
       traefik.enable: "true"
       traefik.docker.network: network_public_attachable
@@ -20,7 +20,7 @@ services:
       traefik.http.routers.forgejo.entrypoints: websecure
       traefik.http.routers.forgejo.tls: "true"
       traefik.http.routers.forgejo.tls.certresolver: letsencryptresolver
-      traefik.http.services.forgejo.loadbalancer.server.port: "3105"
+      traefik.http.services.forgejo.loadbalancer.server.port: "3000"
     networks:
       - database
       - public
@@ -45,7 +45,8 @@ services:
 #   restart: unless-stopped
 #   command: '/bin/sh -c "while : ; do sleep 1 ; done ;"'
 volumes:
-  forgejo:
+  forgejo_data:
+    name: forgejo_data
 
 networks:
   database:
