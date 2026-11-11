@@ -1,6 +1,6 @@
 name: forgejo
 
-service:
+services:
   forgejo:
     image: codeberg.org/forgejo/forgejo:17
     restart: unless-stopped
