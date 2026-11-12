@@ -6,8 +6,8 @@ services:
     privileged: true
     restart: unless-stopped
     command: ["dockerd", "-H", "tcp://0.0.0.0:2375", "--tls=false"]
-  volumes:
-    - dind-data:/var/lib/docker
+    volumes:
+      - dind-data:/var/lib/docker
   runner:
     image: code.forgejo.org/forgejo/runner:13.2.0
     depends_on:
