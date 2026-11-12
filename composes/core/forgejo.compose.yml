@@ -6,11 +6,21 @@ services:
     restart: unless-stopped
     environment:
       TZ: America/Sao_Paulo
+
+      FORGEJO__server__DOMAIN: ${FORGEJO_DOMAIN}
+      FORGEJO__server__SSH_DOMAIN: ${FORGEJO_DOMAIN}
+      FORGEJO__server__ROOT_URL: https://${FORGEJO_DOMAIN}/
+      FORGEJO__server__HTTP_PORT: ${FORGEJO_PORT}
+      FORGEJO__server__SSH_PORT: ${FORGEJO_SSH_PORT}
+      FORGEJO__server__SSH_LISTEN_PORT: ${FORGEJO_SSH_PORT}
+
       FORGEJO__database__DB_TYPE: ${FORGEJO_DB_TYPE}
       FORGEJO__database__HOST: ${FORGEJO_DB_HOST}
       FORGEJO__database__NAME: ${FORGEJO_DB_NAME}
       FORGEJO__database__USER: ${FORGEJO_DB_USER}
       FORGEJO__database__PASSWD: ${FORGEJO_DB_PASSWORD}
+
+      GNUPGHOME: /data/gitea/home/.gnupg
     volumes:
       - /opt/forgejo/data:/data
     labels:
