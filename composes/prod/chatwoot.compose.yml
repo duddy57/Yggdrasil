@@ -43,7 +43,6 @@ x-chatwoot-base: &chatwoot-base
 
 
 services:
-
   chatwoot:
     <<: *chatwoot-base
 

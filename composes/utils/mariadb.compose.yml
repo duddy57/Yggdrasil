@@ -1,0 +1,58 @@
+services:
+  mariadb:
+    image: mariadb:11.8
+
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MARIADB_AUTO_UPGRADE: "1"
+
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+    healthcheck:
+      test:
+        - CMD
+        - healthcheck.sh
+        - --connect
+        - --innodb_initialized
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - database_internal
+
+    stop_grace_period: 1m
+
+    deploy:
+      replicas: 1
+
+      placement:
+        constraints:
+          - node.labels.storage == true
+
+      restart_policy:
+        condition: any
+
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 2G
+        reservations:
+          cpus: "0.25"
+          memory: 512M
+
+volumes:
+  mariadb_data:
+    driver: local
+
+networks:
+  database_internal:
+    external: true
+    name: network_database
