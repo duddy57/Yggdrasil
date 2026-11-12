@@ -6,6 +6,8 @@ services:
     privileged: true
     restart: unless-stopped
     command: ["dockerd", "-H", "tcp://0.0.0.0:2375", "--tls=false"]
+  volumes:
+    - dind-data:/var/lib/docker
   runner:
     image: code.forgejo.org/forgejo/runner:13.2.0
     depends_on:
@@ -19,3 +21,6 @@ services:
       - /opt/forgejo-runner/config.yaml:/config.yaml:ro
     restart: unless-stopped
     command: '/bin/sh -c "sleep 5; forgejo-runner daemon --config /config.yaml"'
+
+volumes:
+  dind-data:
