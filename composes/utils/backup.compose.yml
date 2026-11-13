@@ -1,47 +1,118 @@
-name: backups
-
-x-environment: &environment
-  TZ: ${TZ:-America/Sao_Paulo}
-  PUID: ${PUID:-1000}
-  PGID: ${PGID:-1000}
-
-x-common: &common
-  restart: unless-stopped
-  networks:
-    - backups
-    - database
-  logging:
-    driver: json-file
-    options:
-      max-size: "10m"
-      max-file: "3"
-
 services:
-  zerobyte:
-    <<: *common
-    image: ghcr.io/nicotsx/zerobyte:v0.42
-    container_name: zerobyte
-    restart: unless-stopped
-    cap_add:
-      - SYS_ADMIN
-    ports:
-      - "${TAILSCALE_IP}:4096:4096"
-    security_opt:
-      - apparmor:unconfined
-    devices:
-      - /dev/fuse:/dev/fuse
+  postgres:
+    image: pgvector/pgvector:pg17
     environment:
-      <<: *environment
-      BASE_URL: http://${TAILSCALE_IP}:4096
-      APP_SECRET: ${APP_SECRET}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWD}
+      - POSTGRES_DB=${DATABASE_DEFAULT}
+    ports:
+      - target: 5432
+        published: 5432
+        protocol: tcp
+        mode: host
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /var/lib/zerobyte:/var/lib/zerobyte
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_DEFAULT}"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - database_internal
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.storage == true
+      restart_policy:
+        condition: any
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 1G
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWD}
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", 'redis-cli -a "$$REDIS_PASSWORD" ping | grep -q PONG']
+      start_period: 20s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - database_internal
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.storage == true
+      restart_policy:
+        condition: any
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 256M
+        reservations:
+          cpus: "0.10"
+          memory: 128M
+  minio:
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z-arm64
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_BROWSER_REDIRECT_URL=http://${TAILSCALE_IP}:9001
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - target: 9000
+        published: 9000
+        protocol: tcp
+        mode: host
+      - target: 9001
+        published: 9001
+        protocol: tcp
+        mode: host
+    networks:
+      database_internal:
+        aliases:
+          - minio
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.storage == true
+      restart_policy:
+        condition: any
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+
+  
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
 
 networks:
-  backups:
-    external: true
-    name: network_backup
-  database:
+  database_internal:
     external: true
     name: network_database
