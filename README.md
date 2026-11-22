@@ -15,3 +15,11 @@ Como o repositorio se chama Yggdrasil da mitologia nordica, as maquinas não pod
 ## Controle
 
 Todas as maquinas estão conectadas a uma rede privada, que utilizo para controle e gerenciamento pela maquina Asgard, utilizo o Komodo nela e nas demais uso o periphery
+
+docker exec -it erp-backend-1 \
+      bench new-site erp.sperium.net \
+      --mariadb-user-host-login-scope='%' \
+      --db-root-username=root \
+      --db-root-password='D56bLkF2rctiyWDPpb8Gf8mY5zv3QfSn' \
+      --admin-password='m5L8AtMYAhzzs6WGfQpLsQbCMkd5z4FZ' \
+      --install-app erpnext
