@@ -49,7 +49,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=network_public_attachable"
-      - "traefik.http.routers.penpot.rule=Host(`${PENPOT_DOMAIN:?Set PENPOT_DOMAIN}`)"
+      - "traefik.http.routers.penpot.rule=Host(`${PENPOT_DOMAIN}`)"
       - "traefik.http.routers.penpot.entrypoints=websecure"
       - "traefik.http.routers.penpot.tls=true"
       - "traefik.http.routers.penpot.tls.certresolver=letsencryptresolver"
