@@ -1,5 +1,5 @@
 x-flags: &penpot-flags
-  PENPOT_FLAGS: enable-smtp enable-login-with-oidc enable-admin-console enable-mcp disable-prepl-server
+  PENPOT_FLAGS: enable-smtp enable-login-with-oidc enable-admin-console enable-mcp disable-prepl-server enable-oidc-registration disable-login-with-password
 
 x-uri: &penpot-public-uri
   PENPOT_PUBLIC_URI: https://${PENPOT_DOMAIN:?Set PENPOT_DOMAIN}
@@ -123,9 +123,9 @@ services:
       PENPOT_SMTP_TLS: "${PENPOT_SMTP_TLS:-true}"
       PENPOT_SMTP_SSL: "${PENPOT_SMTP_SSL:-false}"
 
-      ## Inbox for the feedback that MCP agents send. Set it together with
-      ## PENPOT_MCP_BACKEND_URI on the penpot-mcp service.
-      # PENPOT_MCP_FEEDBACK_EMAIL: mcp-feedback@example.com
+  ## Inbox for the feedback that MCP agents send. Set it together with
+  ## PENPOT_MCP_BACKEND_URI on the penpot-mcp service.
+  # PENPOT_MCP_FEEDBACK_EMAIL: mcp-feedback@example.com
 
   penpot-admin-console:
     image: "penpotapp/admin-console:${PENPOT_VERSION:-2.18}"
@@ -148,10 +148,10 @@ services:
     networks:
       - penpot
 
-    # environment:
-      ## Offers the submit_feedback tool, which emails agent feedback through the
-      ## backend. Set it together with PENPOT_MCP_FEEDBACK_EMAIL on the backend.
-      # PENPOT_MCP_BACKEND_URI: http://penpot-backend:6060/
+  # environment:
+  ## Offers the submit_feedback tool, which emails agent feedback through the
+  ## backend. Set it together with PENPOT_MCP_FEEDBACK_EMAIL on the backend.
+  # PENPOT_MCP_BACKEND_URI: http://penpot-backend:6060/
 
   penpot-exporter:
     image: "penpotapp/exporter:${PENPOT_VERSION:-2.18}"
@@ -175,14 +175,14 @@ services:
       ## and for storing the state export jobs
       PENPOT_REDIS_URI: redis://penpot-valkey/0
 
-      # PENPOT_EXPORTER_MAX_CONCURRENT_JOBS: 4
-      # PENPOT_EXPORTER_MAX_JOBS_PER_PROFILE: 2
-      # PENPOT_EXPORTER_QUEUE_MAX: 64
-      # PENPOT_EXPORTER_JOB_TTL: 3600
-      # PENPOT_WASM_WORKER_POOL_MAX: 2
-      # PENPOT_WASM_WORKER_POOL_MIN: 1
-      # PENPOT_WASM_WORKER_IDLE_TIMEOUT: 300
-      # PENPOT_WASM_WORKER_IMAGE_CACHE_SIZE: 134217728
+  # PENPOT_EXPORTER_MAX_CONCURRENT_JOBS: 4
+  # PENPOT_EXPORTER_MAX_JOBS_PER_PROFILE: 2
+  # PENPOT_EXPORTER_QUEUE_MAX: 64
+  # PENPOT_EXPORTER_JOB_TTL: 3600
+  # PENPOT_WASM_WORKER_POOL_MAX: 2
+  # PENPOT_WASM_WORKER_POOL_MIN: 1
+  # PENPOT_WASM_WORKER_IDLE_TIMEOUT: 300
+  # PENPOT_WASM_WORKER_IMAGE_CACHE_SIZE: 134217728
 
   penpot-valkey:
     image: valkey/valkey:8.1
