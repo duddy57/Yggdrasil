@@ -17,6 +17,10 @@ services:
     image: docker.io/matrixdotorg/synapse:latest
     environment:
       SYNAPSE_CONFIG_PATH: /data/homeserver.yaml
+      SYNAPSE_CACHE_FACTOR: "0.1"
+      MALLOC_TRIM_THRESHOLD_: "65536"
+    ports:
+      - "100.125.151.17:8008:8008"
     volumes:
       - /home/ubuntu/matrix/synapse/data:/data
     healthcheck:
@@ -25,23 +29,13 @@ services:
       timeout: 5s
       retries: 3
       start_period: 5s
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=network_public_attachable"
-      - "traefik.http.routers.synapse.rule=Host(`${SYNAPSE_HOST}`)"
-      - "traefik.http.routers.synapse.entrypoints=websecure"
-      - "traefik.http.routers.synapse.tls=true"
-      - "traefik.http.routers.synapse.tls.certresolver=letsencryptresolver"
-      - "traefik.http.services.synapse.loadbalancer.server.port=8008"
-      - traefik.http.routers.https-synapse.service=synapse
-volumes:
-  synapse_data:
-
-
+    deploy:
+      resources:
+        limits:
+          memory: 550M
+        reservations:
+          memory: 256M
 networks:
   database:
     external: true
     name: network_database
-  public:
-    external: true
-    name: network_public_attachable
