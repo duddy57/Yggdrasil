@@ -3,7 +3,6 @@ name: matrix
 x-common: &common
   restart: unless-stopped
   networks:
-    - public
     - database
   logging:
     driver: json-file
