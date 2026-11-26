@@ -1,0 +1,119 @@
+name: monitoring
+
+x-common: &common
+  restart: unless-stopped
+  networks:
+    - monitoring
+    - database
+  environment:
+    TZ: America/Sao_Paulo
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  grafana:
+    <<: *common
+    image: grafana/grafana:13.2
+    ports:
+      - "${GRAFANA_IP_HOST}:3005:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_OAUTH_ALLOW_INSECURE_EMAIL_LOOKUP: "true"
+      GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP: "true"
+      GF_SERVER_ROOT_URL: http://${GRAFANA_IP_HOST}:3005
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_METRICS_ENABLED: "false"
+    volumes:
+      - /var/lib/grafana:/var/lib/grafana
+      - /etc/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - /etc/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 384M
+        reservations:
+          cpus: "0.10"
+          memory: 128M
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+
+  prometheus:
+    <<: *common
+    image: prom/prometheus:latest
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+      - "--web.enable-lifecycle"
+      - "--web.enable-remote-write-receiver"
+    ports:
+      - "${GRAFANA_IP_HOST}:9090:9090"
+    volumes:
+      - /var/lib/prometheus:/prometheus
+      - /etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 1536M
+        reservations:
+          cpus: "0.25"
+          memory: 512M
+
+  loki:
+    <<: *common
+    user: "1001:1001"
+    image: grafana/loki:latest
+    command:
+      - "-config.file=/etc/loki/local-config.yaml"
+    ports:
+      - "${GRAFANA_IP_HOST}:3100:3100"
+    volumes:
+      - /var/lib/loki:/etc/loki
+      - /home/ubuntu/loki-data:/loki
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+        reservations:
+          cpus: "0.10"
+          memory: 128M
+
+  tempo:
+    image: grafana/tempo:latest
+    restart: unless-stopped
+    command:
+      - "-config.file=/etc/tempo/tempo.yaml"
+    ports:
+      - "${GRAFANA_IP_HOST}:3200:3200"
+      - "${GRAFANA_IP_HOST}:4317:4317"
+      - "${GRAFANA_IP_HOST}:4318:4318"
+    volumes:
+      - /var/lib/tempo:/var/tempo
+      - /etc/tempo/tempo.yaml:/etc/tempo/tempo.yaml:ro
+    networks:
+      - monitoring
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+        reservations:
+          cpus: "0.10"
+          memory: 128M
+networks:
+  monitoring:
+    driver: bridge
+  database:
+    external: true
+    name: network_database
