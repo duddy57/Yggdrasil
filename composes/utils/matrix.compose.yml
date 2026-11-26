@@ -34,6 +34,12 @@ services:
           memory: 550M
         reservations:
           memory: 256M
+  fluffychat-web:
+    image: ghcr.io/krille-chan/fluffychat:latest
+    restart: unless-stopped
+    ports:
+      - "100.125.151.17:8085:80"
+
 networks:
   database:
     external: true
